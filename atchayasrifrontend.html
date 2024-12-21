@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Sharing Platform</title>
+    <style>
+        body{
+            background-image:url('https://t3.ftcdn.net/jpg/08/76/85/70/360_F_876857051_aGe8ozEkAYUHXnFoBKB76sFnmisY9aPG.jpg');
+background-repeat: no-repeat;
+ background-size: 100% 250%;
+
+        }
+h1{ color:white;}
+h2{color:white;}
+p{color:#aaf0ea;}
+
+
+button{ color:green;}
+        
+        .form, .recipe, .comment { margin-bottom: 20px; }
+        .recipe { background-color: white; padding: 15px; border-radius: 5px; }
+        .comment { margin-left: 20px; font-style: italic; color: #555; }
+        .username { font-weight: bold;}
+        #authSection, #recipeForm, #feed { margin-bottom: 20px; }
+        input, textarea { width: 50%; margin: 10px 0; padding: 10px; }
+        button { padding: 10px; background-color: green; color: white; border: none; border-radius: 50px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+   <center> <h1>Recipe Sharing Platform</h1></center>
+    
+    <!-- User Authentication Section -->
+    <div id="authSection">
+       <center> <input type="text" id="username" placeholder="Enter your username" required></center>
+        <center><button onclick="login()">Login</button> </center><br><br><br>
+<center><h2><i><b>“Food for the soul, flavor for the senses”</b></i></h2></center>
+
+    </div>
+    <!-- Recipe Form Section -->
+    <div id="recipeForm" style="display: none;">
+<center>
+        <h2>Post a Recipe</h2>
+        <input type="text" id="recipeTitle" placeholder="Recipe Title" required>
+        <textarea id="recipeIngredients" placeholder="List the ingredients here..." required></textarea>
+        <textarea id="recipeDescription" placeholder="Write your recipe description here..." required></textarea><br>
+        <button onclick="postRecipe()">Post Recipe</button>
+<center>
+    </div>
+
+    <!-- Feed Section -->
+    <div id="feed">
+        <h3>Recipe Feed</h3>
+        <div id="recipeFeed"></div>
+    </div>
+
+    <script>
+        let users = {}; // Stores all users and their data
+        let currentUser = ''; // Stores the current logged-in user
+        let recipes = []; // Holds all recipe posts
+
+        // Login function
+        function login() {
+            const username = document.getElementById('username').value.trim();
+            if (username) {
+                currentUser = username;
+                if (!users[currentUser]) users[currentUser] = { likedRecipes: [] };
+                document.getElementById('authSection').innerHTML = `<p>Welcome, ${username}! <button style="background-color: blue;" onclick="logout()">Logout</button></p>`;
+                document.getElementById('recipeForm').style.display = 'block';
+                renderFeed();
+            } else {
+                alert('Please enter a valid username.');
+            }
+        }
+
+        // Logout function
+        function logout() {
+            currentUser = '';
+            document.getElementById('authSection').innerHTML = `
+                <input type="text" id="username" placeholder="Enter your username" required>
+                <button onclick="login()">Login</button>`;
+            document.getElementById('recipeForm').style.display = 'none';
+            renderFeed();
+        }
+
+        // Post a new recipe
+        function postRecipe() {
+            const title = document.getElementById('recipeTitle').value.trim();
+            const ingredients = document.getElementById('recipeIngredients').value.trim();
+            const description = document.getElementById('recipeDescription').value.trim();
+            if (title && ingredients && description) {
+                recipes.push({
+                    username: currentUser, 
+                    title, 
+                    ingredients: ingredients.split('\n'), 
+                    description, 
+                    likes: 0, 
+                    comments: []
+                });
+                document.getElementById('recipeTitle').value = '';
+                document.getElementById('recipeIngredients').value = '';
+                document.getElementById('recipeDescription').value = '';
+                renderFeed();
+            } else {
+                alert('Please fill in all fields.');
+            }
+        }
+
+        // Render the feed
+        function renderFeed() {
+            const feed = document.getElementById('recipeFeed');
+            feed.innerHTML = '';
+            recipes.forEach((recipe, index) => {
+                const isLiked = users[currentUser]?.likedRecipes.includes(index);
+                feed.innerHTML += `
+                    <div class="recipe">
+                        <p class="username">${recipe.username}</p>
+                        <h3>${recipe.title}</h3>
+                        <h4>Ingredients:</h4>
+                        <ul>
+                            ${recipe.ingredients.map(ingredient => `<li>${ingredient}</li>`).join('')}
+                        </ul>
+                        <p>${recipe.description}</p>
+                        <button onclick="likeRecipe(${index})" style="background-color:${isLiked ? 'green' : '#007bff'};">
+                            ${recipe.likes} Likes
+                        </button>
+                        <h4>Comments</h4>
+                        <div id="comments-${index}">
+                            ${recipe.comments.map(comment => `<p class="comment">${comment}</p>`).join('')}
+                        </div>
+                        <input type="text" id="commentInput-${index}" placeholder="Write a comment">
+                        <button onclick="addComment(${index})">Comment</button>
+                    </div>`;
+            });
+        }
+
+        // Like a recipe
+        function likeRecipe(index) {
+            if (!users[currentUser]?.likedRecipes.includes(index)) {
+                recipes[index].likes += 1;
+                users[currentUser].likedRecipes.push(index);
+            } else {
+                alert('You have already liked this recipe.');
+            }
+            renderFeed();
+        }
+
+        // Add a comment to a recipe
+        function addComment(index) {
+            const commentInput = document.getElementById(`commentInput-${index}`);
+            const commentText = commentInput.value.trim();
+            if (commentText) {
+                recipes[index].comments.push(`${currentUser}: ${commentText}`);
+                commentInput.value = '';
+                renderFeed();
+            } else {
+                alert('Please enter a comment.');
+            }
+        }
+    </script>
+</body>
+</html>
+
